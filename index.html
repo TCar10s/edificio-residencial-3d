@@ -1,0 +1,214 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Edificio Residencial 3D</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: full-bleed 3D scene, title block top-left like a plano's rótulo, level selector as a vertical section strip on the right */
+:root{
+  --bg:#e9ece8; --sky-top:#cfd9de; --ink:#1d2321; --muted:#5d6762; --panel:rgba(250,251,249,.88);
+  --line:#c5ccc7; --brick:#2b2f33; --brick-ink:#fff; --focus:#2f6f8f;
+  --display:"Barlow Condensed","Arial Narrow",Arial,sans-serif; --body:Inter,system-ui,-apple-system,"Segoe UI",sans-serif; --mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#171b1a;--sky-top:#25303a;--ink:#e8ece9;--muted:#9aa5a0;--panel:rgba(28,33,31,.88);--line:#3a443f;--brick:#b07a4f;--brick-ink:#fff;--focus:#7fbfdc;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#171b1a;--sky-top:#25303a;--ink:#e8ece9;--muted:#9aa5a0;--panel:rgba(28,33,31,.88);--line:#3a443f;--brick:#b07a4f;--brick-ink:#fff;--focus:#7fbfdc;color-scheme:dark}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);overflow:hidden}
+#scene{position:fixed;inset:0;display:block;width:100%;height:100%;touch-action:none}
+.rotulo{position:fixed;top:calc(env(safe-area-inset-top,0px) + 16px);left:max(16px,env(safe-area-inset-left,0px));max-width:min(420px,calc(100% - 32px));background:var(--panel);border:1px solid var(--line);backdrop-filter:blur(6px);padding:14px 16px 12px;display:grid;gap:6px}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(26px,4.5vw,40px);line-height:.95;margin:0;letter-spacing:.01em;text-wrap:balance}
+.datos{display:flex;flex-wrap:wrap;gap:4px 14px;font-family:var(--mono);font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.datos b{color:var(--ink);font-weight:500}
+.niveles{position:fixed;right:max(16px,env(safe-area-inset-right,0px));top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:6px;background:var(--panel);border:1px solid var(--line);backdrop-filter:blur(6px);padding:10px}
+.niveles .tit{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:0 2px 2px}
+.btn{appearance:none;border:1px solid var(--line);background:transparent;color:var(--ink);font-family:var(--display);font-weight:600;font-size:17px;letter-spacing:.02em;padding:6px 12px;text-align:left;cursor:pointer;display:flex;justify-content:space-between;gap:12px;min-width:148px}
+.btn small{font-family:var(--mono);font-size:11px;font-weight:400;color:var(--muted);align-self:center}
+.btn[aria-pressed="true"]{background:var(--brick);border-color:var(--brick);color:var(--brick-ink)}
+.btn[aria-pressed="true"] small{color:var(--brick-ink);opacity:.85}
+.btn:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.barra{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 16px);display:flex;gap:6px;background:var(--panel);border:1px solid var(--line);backdrop-filter:blur(6px);padding:8px;flex-wrap:wrap;justify-content:center;max-width:calc(100% - 32px)}
+.barra .btn{min-width:0}
+.ayuda{position:fixed;left:max(16px,env(safe-area-inset-left,0px));bottom:calc(env(safe-area-inset-bottom,0px) + 18px);font-size:12px;color:var(--muted);max-width:220px}
+.cargando{position:fixed;inset:0;display:grid;place-items:center;font-family:var(--mono);font-size:13px;color:var(--muted);pointer-events:none}
+.cargando[hidden]{display:none}
+.barra{width:max-content}
+@media (max-width:1100px){.ayuda{display:none}}
+.btn .s{display:none}
+@media (max-width:720px){
+  :root{--dock-h:46px}
+  .rotulo{top:calc(env(safe-area-inset-top,0px) + 10px);left:max(10px,env(safe-area-inset-left,0px));max-width:calc(100% - 20px);padding:8px 10px;gap:3px}
+  .rotulo .eyebrow{display:none}
+  h1{font-size:21px}
+  .datos{font-size:10.5px;gap:2px 10px}
+  .btn{min-height:38px;align-items:center}
+  .btn .l{display:none} .btn .s{display:inline}
+  .barra{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;width:auto;left:max(10px,env(safe-area-inset-left,0px));right:max(10px,env(safe-area-inset-right,0px));transform:none;max-width:none;padding:4px;bottom:calc(env(safe-area-inset-bottom,0px) + 10px)}
+  .barra .btn{font-size:13.5px;padding:4px 2px;justify-content:center;text-align:center;min-width:0}
+  .niveles{top:auto;transform:none;bottom:calc(env(safe-area-inset-bottom,0px) + 10px + var(--dock-h) + 8px);left:max(10px,env(safe-area-inset-left,0px));right:max(10px,env(safe-area-inset-right,0px));display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:4px}
+  .niveles .tit{display:none}
+  .niveles .btn{min-width:0;font-size:14.5px;padding:4px 2px;justify-content:center;text-align:center}
+  .ayuda{display:none}
+  .btn small{display:none}
+}
+@media (prefers-reduced-motion: reduce){.btn{transition:none}}
+</style>
+
+<canvas id="scene" aria-label="Modelo 3D del edificio residencial; arrastra para girar"></canvas>
+<div class="cargando" id="cargando">Cargando modelo 3D…</div>
+
+<header class="rotulo">
+  <span class="eyebrow">Proyecto de aula · Ingeniería Civil UFPSO</span>
+  <h1>Edificio Residencial · 3 pisos + terraza</h1>
+  <div class="datos">
+    <span>Bogotá D.C.</span>
+    <span>Planta <b>12.67 × 18.80 m</b></span>
+    <span>Entrepiso <b>3.10 m</b></span>
+    <span>Cubierta <b>N+9.30</b></span>
+  </div>
+</header>
+
+<nav class="niveles" aria-label="Mostrar hasta el nivel">
+  <span class="tit">Mostrar hasta</span>
+  <button class="btn" id="lv4" data-lv="4" aria-pressed="true">Cubierta <small>N+9.30</small></button>
+  <button class="btn" id="lv3" data-lv="3" aria-pressed="false">Piso 3 <small>N+6.20</small></button>
+  <button class="btn" id="lv2" data-lv="2" aria-pressed="false">Piso 2 <small>N+3.10</small></button>
+  <button class="btn" id="lv1" data-lv="1" aria-pressed="false">Piso 1 <small>N+0.00</small></button>
+</nav>
+
+<div class="barra" role="toolbar" aria-label="Vista">
+  <button class="btn" id="bExplode" aria-pressed="false"><span class="l">Separar pisos</span><span class="s">Separar</span></button>
+  <button class="btn" id="bRotate" aria-pressed="true"><span class="l">Girar solo</span><span class="s">Girar</span></button>
+  <button class="btn" id="bEntorno" aria-pressed="true">Entorno</button>
+  <button class="btn" id="bNombres" aria-pressed="true"><span class="l">Ocultar nombres</span><span class="s">Nombres</span></button>
+  <button class="btn" id="bReset" aria-pressed="false"><span class="l">Vista inicial</span><span class="s">Inicio</span></button>
+</div>
+<p class="ayuda">Arrastra para girar · rueda o pellizco para acercar · clic derecho o dos dedos para desplazar. Elige un piso en «Mostrar hasta» para ver los nombres de sus espacios.</p>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="modelo.js"></script>
+<script>
+(function(){
+  const canvas=document.getElementById('scene');
+  const renderer=new THREE.WebGLRenderer({canvas,antialias:true});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+  renderer.outputEncoding=THREE.sRGBEncoding;
+  renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.3;
+  renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+  const scene=new THREE.Scene();
+  const css=getComputedStyle(document.documentElement);
+  function setBg(){ scene.background=new THREE.Color(css.getPropertyValue('--sky-top').trim()||'#cfd9de'); scene.fog=new THREE.Fog(scene.background,90,260); }
+  setBg();
+  const camera=new THREE.PerspectiveCamera(38,1,0.1,2000);
+  const controls=new THREE.OrbitControls(camera,renderer.domElement);
+  controls.enableDamping=true; controls.dampingFactor=0.08; controls.maxPolarAngle=Math.PI*0.49; controls.minDistance=8; controls.maxDistance=120;
+  controls.autoRotate=true; controls.autoRotateSpeed=0.6;
+  // building center in glTF coords (Blender X,Y,Z -> three X,Z,-Y)
+  const C=new THREE.Vector3(6.1,4.6,-8.3);
+  const home={pos:new THREE.Vector3(6.1-26,15,-8.3+30),tgt:C.clone()};
+  function resetView(){ camera.position.copy(home.pos); controls.target.copy(home.tgt); controls.update(); }
+  resetView();
+  scene.add(new THREE.HemisphereLight(0xdfe8f0,0x5b6b4a,0.75));
+  const sun=new THREE.DirectionalLight(0xfff2e0,1.35); sun.position.set(-18,30,26); sun.target.position.copy(C);
+  sun.castShadow=true; sun.shadow.mapSize.set(2048,2048); const sc=sun.shadow.camera; sc.left=-24; sc.right=24; sc.top=24; sc.bottom=-24; sc.near=1; sc.far=90; sun.shadow.bias=-0.0006;
+  scene.add(sun); scene.add(sun.target);
+  const ground=new THREE.Mesh(new THREE.CircleGeometry(400,48),new THREE.MeshLambertMaterial({color:0x6f8f52}));
+  ground.rotation.x=-Math.PI/2; ground.position.y=-0.35; ground.receiveShadow=true; scene.add(ground);
+
+  const floors={1:null,2:null,3:null,4:null}; let entorno=null, fachada=null;
+  const baseY={};
+  let level=4, explode=0, explodeTarget=0, nombres=true; const labels={};
+  // Vidrio: tinte azul verdoso, semitransparente y con reflejo del cielo
+  function cieloReflejo(){
+    const c=document.createElement('canvas'); c.width=256; c.height=128; const g=c.getContext('2d');
+    const gr=g.createLinearGradient(0,0,0,128);
+    gr.addColorStop(0,'#3d6f9e'); gr.addColorStop(0.42,'#a9c9e2'); gr.addColorStop(0.5,'#e6eef2'); gr.addColorStop(0.58,'#6f7d6a'); gr.addColorStop(1,'#323a30');
+    g.fillStyle=gr; g.fillRect(0,0,256,128);
+    const t=new THREE.CanvasTexture(c); t.mapping=THREE.EquirectangularReflectionMapping; t.encoding=THREE.sRGBEncoding;
+    const pm=new THREE.PMREMGenerator(renderer); const env=pm.fromEquirectangular(t).texture; pm.dispose(); t.dispose(); return env;
+  }
+  const vidrio=new THREE.MeshPhysicalMaterial({color:0x1f6a86,roughness:0.08,metalness:0.1,transparent:true,opacity:0.62,
+    envMap:cieloReflejo(),envMapIntensity:0.55,clearcoat:0.6,clearcoatRoughness:0.08,side:THREE.DoubleSide,depthWrite:false});
+  function glbBuffer(){ const s=atob(window.EDIFICIO_GLB||''); const u=new Uint8Array(s.length); for(let i=0;i<s.length;i++) u[i]=s.charCodeAt(i); return u.buffer; }
+  new THREE.GLTFLoader().parse(glbBuffer(),'',function(g){
+    const root=g.scene;
+    root.traverse(o=>{
+      if(o.isMesh){
+        o.castShadow=true; o.receiveShadow=true;
+        const m=o.material;
+        if(m && /^vidrio( ducha)?$/i.test(m.name||'')){ o.material=vidrio; o.castShadow=false; o.renderOrder=1; }
+      }
+    });
+    scene.add(root);
+    floors[1]=root.getObjectByName('Piso1'); floors[2]=root.getObjectByName('Piso2'); floors[3]=root.getObjectByName('Piso3'); floors[4]=root.getObjectByName('Cubierta');
+    entorno=root.getObjectByName('Entorno'); fachada=root.getObjectByName('Fachada');
+    for(const k in floors){ if(floors[k]) baseY[k]=floors[k].position.y; }
+    // Rótulos de los espacios, pintados sobre el piso: [nombre, x, y en planta (m), cota sobre el nivel, tamaño]
+    const EP=[
+      ['Balcón',6.9,-0.55],['Sala',3.8,3.0],['Corredor',7.2,3.6],['Habitación principal',10.6,4.6],['Baño privado',10.9,2.0,0,0.8],
+      ['Hall escalera',1.15,1.2,0,0.8],['Habitación 2',10.6,7.6],['Habitación 4',1.2,7.6,0,0.85],['Sala de TV',4.3,8.4],
+      ['Baño',0.7,10.2,0,0.8],['Pasillo',7.2,10.6],['Habitación 3',10.6,10.6],['Ducto',0.35,12.6,0,0.55],
+      ['Baño social',8.4,13.2,0,0.7],['Baño',11.1,13.3,0,0.8],['Comedor',3.4,14.6],['Cocina',1.0,16.4,0,0.85],
+      ['Patio de ropas',10.5,15.9],['Patio de luz',7.1,17.1,0,0.75]];
+    const LAB={
+      1:[['Hall escalera',1.15,1.2,0,0.8],['Parqueadero',2.9,11.0,0,1.2],['Ducto',0.35,12.6,0,0.55],
+         ['Sala',8.0,2.6],['Cocina',11.1,4.7],['Corredor',7.2,9.6],['Habitación 1',10.6,7.6],['Habitación 2',10.6,10.6],
+         ['Baño social',8.4,13.2,0,0.7],['Baño',11.1,13.3,0,0.8],['Patio',10.4,15.8],['Patio de luz',7.1,17.1,0.36,0.75]],
+      2:EP, 3:EP,
+      4:[['Caseta de escalera',1.12,3.05,2.72,0.8,'#f2f3f1'],['Terraza',7.2,9.5,0,1.3],['Ducto',1.25,12.6,0,0.6],['Patio de luz',7.1,16.15,0,0.75]]};
+    const Z={1:0,2:3.10,3:6.20,4:9.30};
+    const FONT='600 96px "Barlow Condensed","Arial Narrow",Arial,sans-serif';
+    function rotulo(txt,esc,color){
+      const c=document.createElement('canvas'), g=c.getContext('2d'); g.font=FONT;
+      const w=Math.ceil(g.measureText(txt).width)+24; c.width=w; c.height=128;
+      g.font=FONT; g.fillStyle=color||'#2b302e'; g.textAlign='center'; g.textBaseline='middle'; g.fillText(txt,w/2,66);
+      const t=new THREE.CanvasTexture(c); t.encoding=THREE.sRGBEncoding; t.anisotropy=renderer.capabilities.getMaxAnisotropy();
+      const h=0.30*(esc||1);
+      const m=new THREE.Mesh(new THREE.PlaneGeometry(h*w/128,h),new THREE.MeshBasicMaterial({map:t,transparent:true,opacity:0.8,depthWrite:false,toneMapped:false}));
+      m.rotation.x=-Math.PI/2; m.renderOrder=2; m.castShadow=false; m.receiveShadow=false; return m;
+    }
+    function crearRotulos(){
+      for(let k=1;k<=4;k++){
+        const grp=floors[k]; if(!grp) continue; labels[k]=[];
+        for(const [nom,x,y,dz,esc,color] of LAB[k]){
+          const o=rotulo(nom,esc,color); const p=new THREE.Vector3(x,Z[k]+(k===4?0.045:0.03)+(dz||0),-y); grp.worldToLocal(p);
+          o.position.copy(p); o.visible=nombres; grp.add(o); labels[k].push(o);
+        }
+      }
+    }
+    (document.fonts && document.fonts.load ? document.fonts.load(FONT).catch(()=>{}) : Promise.resolve()).then(crearRotulos);
+    document.getElementById('cargando').hidden=true;
+    applyLevel();
+  },function(){ document.getElementById('cargando').textContent='No se pudo cargar el modelo. Recarga la página.'; });
+
+  function applyLevel(){
+    for(let k=1;k<=4;k++){ if(floors[k]) floors[k].visible = k<=level; }
+    document.querySelectorAll('.niveles .btn').forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.lv===level)));
+  }
+  document.querySelectorAll('.niveles .btn').forEach(b=>b.addEventListener('click',()=>{ level=+b.dataset.lv; applyLevel(); }));
+  const bE=document.getElementById('bExplode'), bR=document.getElementById('bRotate'), bN=document.getElementById('bEntorno');
+  bE.addEventListener('click',()=>{ explodeTarget=explodeTarget?0:4.5; bE.setAttribute('aria-pressed',String(!!explodeTarget)); });
+  bR.addEventListener('click',()=>{ controls.autoRotate=!controls.autoRotate; bR.setAttribute('aria-pressed',String(controls.autoRotate)); });
+  bN.addEventListener('click',()=>{ if(!entorno) return; entorno.visible=!entorno.visible; ground.visible=entorno.visible; bN.setAttribute('aria-pressed',String(entorno.visible)); });
+  const bNm=document.getElementById('bNombres');
+  bNm.addEventListener('click',()=>{ nombres=!nombres; bNm.setAttribute('aria-pressed',String(nombres)); bNm.querySelector('.l').textContent=nombres?'Ocultar nombres':'Mostrar nombres'; for(const k in labels) labels[k].forEach(o=>o.visible=nombres); });
+  document.getElementById('bReset').addEventListener('click',resetView);
+  const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(reduce){ controls.autoRotate=false; bR.setAttribute('aria-pressed','false'); }
+
+  function resize(){ const w=canvas.clientWidth,h=canvas.clientHeight; renderer.setSize(w,h,false); camera.aspect=w/h; camera.updateProjectionMatrix(); }
+  window.addEventListener('resize',resize); resize();
+  const mq=window.matchMedia('(prefers-color-scheme: dark)'); if(mq.addEventListener) mq.addEventListener('change',()=>setTimeout(setBg,30));
+  new MutationObserver(()=>setTimeout(setBg,30)).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+  function tick(){
+    explode += (explodeTarget-explode)*(reduce?1:0.12);
+    for(let k=1;k<=4;k++){ if(floors[k]) floors[k].position.y=baseY[k]+(k-1)*explode; }
+    if(fachada) fachada.visible = level===4 && explode<0.05;
+    controls.update(); renderer.render(scene,camera); requestAnimationFrame(tick);
+  }
+  tick();
+})();
+</script>
+
+</body></html>
