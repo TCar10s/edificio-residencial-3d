@@ -111,7 +111,7 @@ h1{font-family:var(--display);font-weight:700;font-size:clamp(26px,4.5vw,40px);l
   resetView();
   scene.add(new THREE.HemisphereLight(0xdfe8f0,0x5b6b4a,0.75));
   const sun=new THREE.DirectionalLight(0xfff2e0,1.35); sun.position.set(-18,30,26); sun.target.position.copy(C);
-  sun.castShadow=true; sun.shadow.mapSize.set(2048,2048); const sc=sun.shadow.camera; sc.left=-24; sc.right=24; sc.top=24; sc.bottom=-24; sc.near=1; sc.far=90; sun.shadow.bias=-0.0006;
+  sun.castShadow=true; sun.shadow.mapSize.set(2048,2048); const sc=sun.shadow.camera; sc.left=-24; sc.right=24; sc.top=24; sc.bottom=-24; sc.near=1; sc.far=90; sun.shadow.bias=-0.0006; sun.shadow.normalBias=0.04;
   scene.add(sun); scene.add(sun.target);
   const ground=new THREE.Mesh(new THREE.CircleGeometry(400,48),new THREE.MeshLambertMaterial({color:0x6f8f52}));
   ground.rotation.x=-Math.PI/2; ground.position.y=-0.35; ground.receiveShadow=true; scene.add(ground);
